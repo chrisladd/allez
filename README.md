@@ -2,14 +2,19 @@
 
 Allez puts things up in s3, simply.
 
+## Members
+
+<dl>
+<dt><a href="#oop">oop</a></dt>
+<dd><p>a fun alias for <code>upload</code></p>
+</dd>
+</dl>
+
 ## Functions
 
 <dl>
-<dt><a href="#uploadDirectory">uploadDirectory(directoryPath, bucket, options, completion)</a></dt>
-<dd><p>Uploads the contents of a directory to s3.</p>
-</dd>
-<dt><a href="#uploadFile">uploadFile(fromPath, bucket, options, completion)</a></dt>
-<dd><p>Uploads a single file to s3</p>
+<dt><a href="#upload">upload(fileOrDirectoryPath, bucket, options, completion)</a></dt>
+<dd><p>Uploads a file, or the contents of a directory to s3</p>
 </dd>
 </dl>
 
@@ -24,31 +29,23 @@ Allez puts things up in s3, simply.
 </dd>
 </dl>
 
-<a name="uploadDirectory"></a>
+<a name="oop"></a>
 
-## uploadDirectory(directoryPath, bucket, options, completion)
-Uploads the contents of a directory to s3.
+## oop
+a fun alias for `upload`
+
+**Kind**: global variable  
+<a name="upload"></a>
+
+## upload(fileOrDirectoryPath, bucket, options, completion)
+Uploads a file, or the contents of a directory to s3
 
 **Kind**: global function  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| directoryPath | <code>string</code> | the relative path to the |
+| fileOrDirectoryPath | <code>string</code> | the relative path to the file or directory. If it's a directory, its contents will be uploaded. If it's a file, the file itself will be uploaded. |
 | bucket | <code>string</code> | the bucket to push to |
-| options | [<code>uploadOptions</code>](#uploadOptions) | options to control upload |
-| completion | [<code>uploadCompletion</code>](#uploadCompletion) | a completion to fire once done |
-
-<a name="uploadFile"></a>
-
-## uploadFile(fromPath, bucket, options, completion)
-Uploads a single file to s3
-
-**Kind**: global function  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| fromPath | <code>string</code> | the path of the file to upload |
-| bucket | <code>string</code> | the s3 bucket to upload to |
 | options | [<code>uploadOptions</code>](#uploadOptions) | options to control upload |
 | completion | [<code>uploadCompletion</code>](#uploadCompletion) | a completion to fire once done |
 
