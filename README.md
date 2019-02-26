@@ -2,6 +2,26 @@
 
 Allez puts things up in s3, simply.
 
+
+## Usage
+
+```
+const allez = require('@cgl2/allez');
+
+allez.upload(filepath, bucket, {
+    folder: 'allez'
+}, function(url, error){
+    console.log(url);
+})
+
+// the upload method is aliased to `oop`. just for fun.
+allez.oop(dirpath, bucket, null, function(url, error){
+    console.log(url);
+})
+
+allez.oop(filepath, bucket)
+```
+
 ## Members
 
 <dl>
