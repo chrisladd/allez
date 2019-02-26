@@ -1,0 +1,26 @@
+{
+  "name": "allez",
+  "version": "1.0.0",
+  "description": "Allez puts things up in s3",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha",
+    "docs": "node g_docs.js && git add README.md && git commit -m 'updates docs' && git push"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrisladd/allez.git"
+  },
+  "author": "Christopher Ladd",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chrisladd/allez/issues"
+  },
+  "homepage": "https://github.com/chrisladd/allez#readme",
+  "dependencies": {
+    "s3": "^4.4.0"
+  },
+  "devDependencies": {
+    "jsdoc-to-markdown": "^4.0.1"
+  }
+}

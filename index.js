@@ -1,0 +1,154 @@
+
+const s3 = require('s3');
+const Path = require('path');
+
+function getClient(s3Options) {
+  let client = s3.createClient({
+    maxAsyncS3: 20,     // this is the default
+    s3RetryCount: 3,    // this is the default
+    s3RetryDelay: 1000, // this is the default
+    multipartUploadThreshold: 20971520, // this is the default (20 MB)
+    multipartUploadSize: 15728640, // this is the default (15 MB)
+    s3Options: s3Options
+    // s3Options: {
+    //   accessKeyId: "your s3 key",
+    //   `: "your s3 secret",
+    //   // any other options are passed to new AWS.S3()
+    //   // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Config.html#constructor-property
+  // },
+  });
+
+  return client;
+}
+
+/**
+ * A completion to fire on success, or failure, pushing items to s3.
+ * @callback uploadCompletion
+ * @param {string} url
+ * @param {Object} error
+ */
+
+/**
+*  Options for finer-grained control of uploads.
+*  @typedef {Object} uploadOptions
+*  @property {string} folder - the remote directory to push content to
+*  @property {string} acl - the acl to apply. `public-read` by default.
+*  @property {Object} s3Options - s3Options to pass to the s3 client. This contains `accessKeyId` and `secretAccessKey`, to allow you to customize your credentials. By default, allez will use the default s3 credentials on your machine.
+*/
+
+/**
+*   Uploads the contents of a directory to s3.
+*
+*   @param directoryPath {string} - the relative path to the 
+*   @param bucket {string} - the bucket to push to
+*   @param options {uploadOptions} - options to control upload
+*   @param completion {uploadCompletion} - a completion to fire once done
+*
+*/
+module.exports.uploadDirectory = function(directoryPath, bucket, options, completion) {
+    if (!options) {
+      options = {};
+    }
+
+    let client = getClient(options.s3Options);
+
+    let deleteRemoved = false;
+    if (options.deleteRemoved) {
+        deleteRemoved = options.deleteRemoved;
+    }
+
+    let remoteDir = '';
+    if (options.folder) {
+      remoteDir = options.folder;
+    }
+
+    let acl = 'public-read';
+    if (options.acl) {
+      acl = options.acl;
+    }
+
+    var params = {
+      localDir: directoryPath,
+      deleteRemoved: deleteRemoved, // default false, whether to remove s3 objects
+      s3Params: {
+        Bucket: bucket,
+        Prefix: remoteDir,
+        ACL: acl
+        // other options supported by putObject, except Body and ContentLength.
+        // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
+      },
+    };
+    
+    var uploader = client.uploadDir(params);
+    
+    uploader.on('progress', function() {
+      // console.log("progress", uploader.progressAmount, uploader.progressTotal);
+    });
+    
+    uploader.on('error', function(err) {
+        completion(null, err);
+    });
+    
+    uploader.on('end', function() {
+        let url = `https://s3.amazonaws.com/${bucket}/${remoteDir}`
+        completion(url, null);
+    });
+};
+
+/**
+*  Uploads a single file to s3
+*
+*   @param fromPath {string} - the path of the file to upload
+    @param bucket {string} - the s3 bucket to upload to
+*   @param options {uploadOptions} - options to control upload
+*   @param completion {uploadCompletion} - a completion to fire once done
+
+*/
+module.exports.uploadFile = function(fromPath, bucket, options, completion) {
+    if (!options) {
+      options = {};
+    }
+
+    let client = getClient(options.s3Options);
+
+    let filename = Path.basename(fromPath);
+    let remotePath = filename;
+
+    
+    if (options.folder) {
+      let folder = options.folder;
+      let lastChar = folder.substring(folder.length - 1);
+      if (lastChar != '/') {
+        folder = folder + '/';
+      }
+      
+      remotePath = folder + filename;
+    }
+
+    let acl = 'public-read';
+    if (options.acl) {
+      acl = options.acl;
+    }
+
+    var params = {
+        localFile: fromPath,
+ 
+        s3Params: {
+            Bucket: bucket,
+            Key: remotePath,
+            ACL: acl
+            // other options supported by putObject, except Body and ContentLength.
+            // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
+        }
+    };
+
+    var uploader = client.uploadFile(params);
+    uploader.on('error', function(err) {
+        completion(null, err);
+    });
+    
+    uploader.on('end', function() {
+        let url = `https://s3.amazonaws.com/${bucket}/${remotePath}`
+        completion(url, null);
+    });
+}
