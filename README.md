@@ -19,6 +19,7 @@ allez.oop(dirpath, bucket, null, function(url, error){
     console.log(url);
 })
 
+// options and callback are optional
 allez.oop(filepath, bucket)
 ```
 
