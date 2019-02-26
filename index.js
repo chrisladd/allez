@@ -57,6 +57,7 @@ module.exports.oop = module.exports.upload;
 *  @typedef {Object} uploadOptions
 *  @property {string} folder - the remote directory to push content to
 *  @property {string} acl - the acl to apply. `public-read` by default.
+*  @property {boolean} deleteRemoved - in the case of directory uploads, setting this option to `true` will delete any remote files not present in the local folder. `false` by default.
 *  @property {Object} s3Options - s3Options to pass to the s3 client. This contains `accessKeyId` and `secretAccessKey`, to allow you to customize your credentials. By default, allez will use the default s3 credentials on your machine.
 */
 

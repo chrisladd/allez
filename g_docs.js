@@ -27,6 +27,20 @@ allez.oop(dirpath, bucket, null, function(url, error){
 allez.oop(filepath, bucket)
 \`\`\`
 
+## CLI
+
+For quick uploads, you can add an alias to the \`upload\` script in the \`cli\` folder:
+
+\`alias allez='node ~/dev/allez/cli/upload.js'\`
+
+Usage:
+\`allez LOCALPATH FOLDER BUCKET\`
+
+Folder and bucket are both optional. So, for example:
+\`allez file.png\` 
+
+is all you need to upload an image in the current directory to the default bucket.
+
 `
 
 const docs = jsdoc2md.renderSync({ files: 'index.js' })
