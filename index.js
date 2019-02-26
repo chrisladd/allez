@@ -1,6 +1,7 @@
 
 const s3 = require('s3');
 const Path = require('path');
+const fs = require('fs');
 
 function getClient(s3Options) {
   let client = s3.createClient({
@@ -22,6 +23,29 @@ function getClient(s3Options) {
 }
 
 /**
+*   Uploads a file, or the contents of a directory to s3
+*
+*   @param fileOrDirectoryPath {string} - the relative path to the file or directory. If it's a directory, its contents will be uploaded. If it's a file, the file itself will be uploaded.
+*   @param bucket {string} - the bucket to push to
+*   @param options {uploadOptions} - options to control upload
+*   @param completion {uploadCompletion} - a completion to fire once done
+*
+*/
+module.exports.upload = function(fileOrDirectoryPath, bucket, options, completion) {
+  if (fs.lstatSync(fileOrDirectoryPath).isDirectory()) {
+    uploadDirectory(fileOrDirectoryPath, bucket, options, completion);
+  }
+  else {
+    uploadFile(fileOrDirectoryPath, bucket, options, completion);
+  }
+}
+
+/**
+*  a fun alias for `upload`
+*/
+module.exports.oop = module.exports.upload;
+
+/**
  * A completion to fire on success, or failure, pushing items to s3.
  * @callback uploadCompletion
  * @param {string} url
@@ -36,16 +60,8 @@ function getClient(s3Options) {
 *  @property {Object} s3Options - s3Options to pass to the s3 client. This contains `accessKeyId` and `secretAccessKey`, to allow you to customize your credentials. By default, allez will use the default s3 credentials on your machine.
 */
 
-/**
-*   Uploads the contents of a directory to s3.
-*
-*   @param directoryPath {string} - the relative path to the 
-*   @param bucket {string} - the bucket to push to
-*   @param options {uploadOptions} - options to control upload
-*   @param completion {uploadCompletion} - a completion to fire once done
-*
-*/
-module.exports.uploadDirectory = function(directoryPath, bucket, options, completion) {
+
+function uploadDirectory(directoryPath, bucket, options, completion) {
     if (!options) {
       options = {};
     }
@@ -95,16 +111,7 @@ module.exports.uploadDirectory = function(directoryPath, bucket, options, comple
     });
 };
 
-/**
-*  Uploads a single file to s3
-*
-*   @param fromPath {string} - the path of the file to upload
-    @param bucket {string} - the s3 bucket to upload to
-*   @param options {uploadOptions} - options to control upload
-*   @param completion {uploadCompletion} - a completion to fire once done
-
-*/
-module.exports.uploadFile = function(fromPath, bucket, options, completion) {
+function uploadFile(fromPath, bucket, options, completion) {
     if (!options) {
       options = {};
     }
