@@ -17,3 +17,5 @@ allez.oop(dirpath, bucket, {
 }, function(url, error){
     console.log(url);
 })
+
+allez.oop(filepath, bucket)

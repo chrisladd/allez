@@ -107,7 +107,10 @@ function uploadDirectory(directoryPath, bucket, options, completion) {
     
     uploader.on('end', function() {
         let url = `https://s3.amazonaws.com/${bucket}/${remoteDir}`
-        completion(url, null);
+        if (completion) {
+          completion(url, null);  
+        }
+        
     });
 };
 
@@ -151,11 +154,15 @@ function uploadFile(fromPath, bucket, options, completion) {
 
     var uploader = client.uploadFile(params);
     uploader.on('error', function(err) {
-        completion(null, err);
+        if (completion) {
+          completion(null, err);
+        }
     });
     
     uploader.on('end', function() {
         let url = `https://s3.amazonaws.com/${bucket}/${remotePath}`
-        completion(url, null);
+        if (completion) {
+          completion(url, null);
+        }
     });
 }
