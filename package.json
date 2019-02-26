@@ -1,5 +1,5 @@
 {
-  "name": "allez",
+  "name": "@cgl2/allez",
   "version": "1.0.0",
   "description": "Allez puts things up in s3",
   "main": "index.js",
