@@ -25,9 +25,15 @@ function getClient(s3Options) {
 /**
 *   Uploads a file, or the contents of a directory to s3
 *
-*   @param fileOrDirectoryPath {string} - the relative path to the file or directory. If it's a directory, its contents will be uploaded. If it's a file, the file itself will be uploaded.
-*   @param bucket {string} - the bucket to push to
-*   @param options {uploadOptions} - options to control upload
+*  @param fileOrDirectoryPath {string} - the relative path to the file or directory. If it's a directory, its contents will be uploaded. If it's a file, the file itself will be uploaded.
+*  @param bucket {string} - the bucket to push to
+*  @param {Object} options - options to control upload
+*  @param {string} options.folder - the remote directory to push content to
+*  @param {string} options.acl - the acl to apply. `public-read` by default
+*  @param {string} options.name - the remote name to use for this file. If none is supplied, the file will have the same name as the local file.
+*  @param {boolean} options.deleteRemoved - in the case of directory uploads, setting this option to `true` will delete any remote files not present in the local folder. `false` by default.
+*  @param {Object} options.s3Options - s3Options to pass to the s3 client. This contains `accessKeyId` and `secretAccessKey`, to allow you to customize your credentials. By default, allez will use the default s3 credentials on your machine.
+
 *   @param completion {uploadCompletion} - a completion to fire once done
 *
 */
@@ -51,16 +57,6 @@ module.exports.oop = module.exports.upload;
  * @param {string} url
  * @param {Object} error
  */
-
-/**
-*  Options for finer-grained control of uploads.
-*  @typedef {Object} uploadOptions
-*  @property {string} folder - the remote directory to push content to
-*  @property {string} acl - the acl to apply. `public-read` by default.
-*  @property {boolean} deleteRemoved - in the case of directory uploads, setting this option to `true` will delete any remote files not present in the local folder. `false` by default.
-*  @property {Object} s3Options - s3Options to pass to the s3 client. This contains `accessKeyId` and `secretAccessKey`, to allow you to customize your credentials. By default, allez will use the default s3 credentials on your machine.
-*/
-
 
 function uploadDirectory(directoryPath, bucket, options, completion) {
     if (!options) {
@@ -123,9 +119,14 @@ function uploadFile(fromPath, bucket, options, completion) {
     let client = getClient(options.s3Options);
 
     let filename = Path.basename(fromPath);
-    let remotePath = filename;
+    let remoteFilename = filename;
+   
+    if (options.name && options.name.length > 0) {
+      remoteFilename = options.name;
+    }
 
-    
+    let remotePath = remoteFilename;
+
     if (options.folder) {
       let folder = options.folder;
       let lastChar = folder.substring(folder.length - 1);
@@ -133,7 +134,7 @@ function uploadFile(fromPath, bucket, options, completion) {
         folder = folder + '/';
       }
       
-      remotePath = folder + filename;
+      remotePath = folder + remoteFilename;
     }
 
     let acl = 'public-read';
