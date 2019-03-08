@@ -3,6 +3,15 @@ const allez = require('../index.js')
 const Path = require('path');
 const DEFAULT_BUCKET = 'xkdj3i2h';
 
+function pbcopy(data) {
+    var proc = require('child_process').spawn('pbcopy'); 
+    proc.stdin.write(data); proc.stdin.end();
+}
+
+function shouldCopy(argv) {
+    return true;
+}
+
 function localPathForArgv(argv) {
     let localPath = null;
     if (argv.length > 2) {
@@ -41,9 +50,10 @@ function folderForArgv(argv) {
     return folder;
 }
 
-let localPath = localPathForArgv(process.argv);
-let bucket = bucketForArgv(process.argv);
-let folder = folderForArgv(process.argv);
+let argv = [].concat(process.argv);
+let localPath = localPathForArgv(argv);
+let bucket = bucketForArgv(argv);
+let folder = folderForArgv(argv);
 let name = uniqueFilenameFromPath(localPath)
 
 console.log(`uploading ${localPath} to ${bucket}, in folder ${folder}... (${name})`)
@@ -58,6 +68,12 @@ allez.upload(localPath, bucket, {
     }
     else {
         console.log(`uploaded to ${url}`)
+
+        if (shouldCopy(argv)) {
+            pbcopy(url);
+            console.log('As requested, this url has been copied to your clipboard.')
+        }
+
         console.log('it has been my pleasure to serve you')
     }
 })
