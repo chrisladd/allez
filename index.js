@@ -5,18 +5,12 @@ const fs = require('fs');
 
 function getClient(s3Options) {
   let client = s3.createClient({
-    maxAsyncS3: 20,     // this is the default
-    s3RetryCount: 3,    // this is the default
-    s3RetryDelay: 1000, // this is the default
-    multipartUploadThreshold: 20971520, // this is the default (20 MB)
-    multipartUploadSize: 15728640, // this is the default (15 MB)
+    maxAsyncS3: 20,                       // this is the default
+    s3RetryCount: 3,                      // this is the default
+    s3RetryDelay: 1000,                   // this is the default
+    multipartUploadThreshold: 20971520,   // this is the default (20 MB)
+    multipartUploadSize: 15728640,        // this is the default (15 MB)
     s3Options: s3Options
-    // s3Options: {
-    //   accessKeyId: "your s3 key",
-    //   `: "your s3 secret",
-    //   // any other options are passed to new AWS.S3()
-    //   // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Config.html#constructor-property
-  // },
   });
 
   return client;
@@ -25,14 +19,16 @@ function getClient(s3Options) {
 /**
 *   Uploads a file, or the contents of a directory to s3
 *
-*  @param fileOrDirectoryPath {string} - the relative path to the file or directory. If it's a directory, its contents will be uploaded. If it's a file, the file itself will be uploaded.
-*  @param bucket {string} - the bucket to push to
-*  @param {Object} options - options to control upload
-*  @param {string} options.folder - the remote directory to push content to
-*  @param {string} options.acl - the acl to apply. `public-read` by default
-*  @param {string} options.name - the remote name to use for this file. If none is supplied, the file will have the same name as the local file.
-*  @param {boolean} options.deleteRemoved - in the case of directory uploads, setting this option to `true` will delete any remote files not present in the local folder. `false` by default.
-*  @param {Object} options.s3Options - s3Options to pass to the s3 client. This contains `accessKeyId` and `secretAccessKey`, to allow you to customize your credentials. By default, allez will use the default s3 credentials on your machine.
+*  @param fileOrDirectoryPath {string}          the relative path to the file or directory. If it's a directory, its contents will be uploaded. If it's a file, the file itself will be uploaded.
+*  @param bucket {string}                       the bucket to push to
+*  @param {Object} options                      options to control upload
+*  @param {string} options.folder               the remote directory to push content to
+*  @param {string} options.acl                  the acl to apply. `public-read` by default
+*  @param {string} options.name                 the remote name to use for this file. If none is supplied, the file will have the same name as the local file.
+*  @param {string} options.contentEncoding      content encoding to be applied to the file or directory contents. e.g. `gzip`. See [AWS docs](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html). If your file ends with `gz` or `gzip`, the encoding will be set for you by default. **note** that this has undefined results on directory uploads.
+*  @param {string} options.contentType          the content type to be applied. e.g. 'application/json' **note** that this has undefined results on directory uploads. In the case of `json` or `json.gz` files, this will be set to `application/json` for you automatically.
+*  @param {boolean} options.deleteRemoved       in the case of directory uploads, setting this option to `true` will delete any remote files not present in the local folder. `false` by default.
+*  @param {Object} options.s3Options            s3Options to pass to the s3 client. This contains `accessKeyId` and `secretAccessKey`, to allow you to customize your credentials. By default, allez will use the default s3 credentials on your machine.
 
 *   @param completion {uploadCompletion} - a completion to fire once done
 *
@@ -80,16 +76,26 @@ function uploadDirectory(directoryPath, bucket, options, completion) {
       acl = options.acl;
     }
 
-    var params = {
-      localDir: directoryPath,
-      deleteRemoved: deleteRemoved, // default false, whether to remove s3 objects
-      s3Params: {
+    let s3Params = {
         Bucket: bucket,
         Prefix: remoteDir,
         ACL: acl
         // other options supported by putObject, except Body and ContentLength.
         // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
-      },
+      }
+
+      if (options.contentEncoding) {
+        s3Params.ContentEncoding = options.contentEncoding;
+      }
+
+      if (options.contentType) {
+        s3Params.ContentType = options.contentType;
+      }
+
+    var params = {
+      localDir: directoryPath,
+      deleteRemoved: deleteRemoved, // default false, whether to remove s3 objects
+      s3Params: s3Params
     };
     
     var uploader = client.uploadDir(params);
@@ -110,6 +116,41 @@ function uploadDirectory(directoryPath, bucket, options, completion) {
         
     });
 };
+
+function s3ParamsForFile(bucket, remotePath, options) {
+  let acl = 'public-read';
+  if (options.acl) {
+    acl = options.acl;
+  }
+
+  let s3Params = {
+    Bucket: bucket,
+    Key: remotePath,
+    ACL: acl
+    // other options supported by putObject, except Body and ContentLength.
+    // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
+  }
+
+  if (options.contentEncoding) {
+    s3Params.ContentEncoding = options.contentEncoding;
+  }
+  else {
+    if (remotePath.endsWith('.gz') || remotePath.endsWith('.gzip')) {
+      s3Params.ContentEncoding = 'gzip';
+    }
+  }
+
+  if (options.contentType) {
+    s3Params.ContentType = options.contentType;
+  }
+  else {
+    if (remotePath.indexOf('.json') > 0) {
+      s3Params.ContentType = 'application/json';
+    }
+  }
+
+  return s3Params;
+}
 
 function uploadFile(fromPath, bucket, options, completion) {
     if (!options) {
@@ -137,21 +178,11 @@ function uploadFile(fromPath, bucket, options, completion) {
       remotePath = folder + remoteFilename;
     }
 
-    let acl = 'public-read';
-    if (options.acl) {
-      acl = options.acl;
-    }
+    let s3Params = s3ParamsForFile(bucket, remotePath, options);
 
     var params = {
         localFile: fromPath,
- 
-        s3Params: {
-            Bucket: bucket,
-            Key: remotePath,
-            ACL: acl
-            // other options supported by putObject, except Body and ContentLength.
-            // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
-        }
+        s3Params: s3Params
     };
 
     var uploader = client.uploadFile(params);
