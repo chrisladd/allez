@@ -82,6 +82,8 @@ Uploads a file, or the contents of a directory to s3
 | options.folder | <code>string</code> | the remote directory to push content to |
 | options.acl | <code>string</code> | the acl to apply. `public-read` by default |
 | options.name | <code>string</code> | the remote name to use for this file. If none is supplied, the file will have the same name as the local file. |
+| options.contentEncoding | <code>string</code> | content encoding to be applied to the file or directory contents. e.g. `gzip`. See [AWS docs](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html). If your file ends with `gz` or `gzip`, the encoding will be set for you by default. **note** that this has undefined results on directory uploads. |
+| options.contentType | <code>string</code> | the content type to be applied. e.g. 'application/json' **note** that this has undefined results on directory uploads. In the case of `json` or `json.gz` files, this will be set to `application/json` for you automatically. |
 | options.deleteRemoved | <code>boolean</code> | in the case of directory uploads, setting this option to `true` will delete any remote files not present in the local folder. `false` by default. |
 | options.s3Options | <code>Object</code> | s3Options to pass to the s3 client. This contains `accessKeyId` and `secretAccessKey`, to allow you to customize your credentials. By default, allez will use the default s3 credentials on your machine. |
 | completion | [<code>uploadCompletion</code>](#uploadCompletion) | a completion to fire once done |
