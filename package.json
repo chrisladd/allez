@@ -1,6 +1,6 @@
 {
   "name": "@cgl2/allez",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Allez puts things up in s3",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/chrisladd/allez#readme",
   "dependencies": {
-    "s3": "^4.4.0"
+    "@auth0/s3": "^1.0.0"
   },
   "devDependencies": {
     "jsdoc-to-markdown": "^4.0.1"

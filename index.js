@@ -1,5 +1,5 @@
 
-const s3 = require('s3');
+const s3 = require('@auth0/s3');
 const Path = require('path');
 const fs = require('fs');
 
