@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/chrisladd/allez#readme",
   "dependencies": {
-    "@auth0/s3": "^1.0.0"
+    "@auth0/s3": "^1.0.0",
+    "tinify": "^1.6.0-beta.2"
   },
   "devDependencies": {
     "jsdoc-to-markdown": "^4.0.1"
